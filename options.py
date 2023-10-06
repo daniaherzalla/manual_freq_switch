@@ -3,8 +3,8 @@ import os
 import re
 from typing import List
 
-
 VALID_CHANNELS = [36, 40, 44, 48, 149, 153, 157, 161]
+# Note that DFS channel on the 5 GHz band are removed as they should not be used for communication
 
 
 class Options:
@@ -14,17 +14,10 @@ class Options:
         self.starting_channel: int = 36
         self.waiting_time: int = 15
         self.channels5: List[int] = [36, 40, 44, 48, 149, 153, 157, 161]
-        self.threshold: float = 0.0
         self.osf_interface: str = 'tun0'
-        self.scan_interface: str = 'wlp1s0'
         self.mesh_interface: str = 'wlp1s0'
         self.debug: bool = True
-        self.min_rows: int = 16
-        self.periodic_scan: float = 60
         self.periodic_recovery_switch: float = 20
-        self.periodic_target_freq_broadcast: float = 10
-        self.spectrum_data_expiry_time: float = 5
-        self.data_gathering_wait_time: float = len(self.channels5) + 5
 
     def validate_configuration(self) -> bool:
         """
@@ -81,19 +74,11 @@ class Options:
         parser.add_argument('--waiting_time', type=int, default=self.waiting_time, help='Time interval in seconds.')
         parser.add_argument('--channels5', type=lambda x: [int(i) for i in x.split(',')], default=self.channels5,
                             help='Available channels on the 5GHz. Provide comma-separated values (e.g., 36,40,44,48,149,153,157,161).')
-        parser.add_argument('--threshold', type=float, default=self.threshold, help='Threshold on the probability of being jammed.')
         parser.add_argument('--osf_interface', type=str, default=self.osf_interface, help='OSF interface name.')
-        parser.add_argument('--scan_interface', type=str, default=self.scan_interface, help='Interface name used for scanning.')
         parser.add_argument('--mesh_interface', type=str, default=self.mesh_interface, help='Mesh interface name.')
         parser.add_argument('--debug', type=bool, default=self.debug, help='Use local random sampling of .csv as scan instead of the actual spectral scan.')
-        parser.add_argument('--min_rows', type=int, default=self.min_rows, help='Minimum number of rows of a given frequency within a scan so that the scan is valid.')
-        parser.add_argument('--periodic_scan', type=float, default=self.periodic_scan, help='How often to perform a spectral scan.')
         parser.add_argument('--periodic_recovery_switch', type=float, default=self.periodic_recovery_switch,
                             help='How often to trigger switching channel after channel switch has failed.')
-        parser.add_argument('--periodic_target_freq_broadcast', type=float, default=self.periodic_target_freq_broadcast,
-                            help='How often to broadcast to clients the target mesh frequency.')
-        parser.add_argument('--spectrum_data_expiry_time', type=float, default=self.spectrum_data_expiry_time, help='Expiry time for spectral scan data.')
-
         args = parser.parse_args()
 
         self.jamming_osf_orchestrator = args.jamming_osf_orchestrator
@@ -101,16 +86,10 @@ class Options:
         self.starting_channel = args.starting_channel
         self.waiting_time = args.waiting_time
         self.channels5 = args.channels5
-        self.threshold = args.threshold
         self.osf_interface = args.osf_interface
-        self.scan_interface = args.scan_interface
         self.mesh_interface = args.mesh_interface
         self.debug = args.debug
-        self.min_rows = args.min_rows
-        self.periodic_scan = args.periodic_scan
         self.periodic_recovery_switch = args.periodic_recovery_switch
-        self.periodic_target_freq_broadcast = args.periodic_target_freq_broadcast
-        self.spectrum_data_expiry_time = args.spectrum_data_expiry_time
 
         # Validate user input parameter
         if not self.validate_configuration():

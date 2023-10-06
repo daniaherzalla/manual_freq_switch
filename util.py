@@ -1,16 +1,8 @@
-import argparse
-import pathlib
-import os
-import random
 import re
 import subprocess
-from enum import Enum
-from typing import Optional, Tuple
 
 import netifaces
 import numpy as np
-import pandas as pd
-import torch
 
 from options import Options
 args = Options()
@@ -19,14 +11,6 @@ CH_TO_FREQ = {1: 2412, 2: 2417, 3: 2422, 4: 2427, 5: 2432, 6: 2437, 7: 2442, 8: 
               36: 5180, 40: 5200, 44: 5220, 48: 5240, 52: 5260, 56: 5280, 60: 5300, 64: 5320, 100: 5500, 104: 5520,
               108: 5540, 112: 5560, 116: 5580, 120: 5600, 124: 5620, 128: 5640, 132: 5660, 136: 5680, 140: 5700,
               149: 5745, 153: 5765, 157: 5785, 161: 5805}
-FREQ_TO_CH = {v: k for k, v in CH_TO_FREQ.items()}
-
-FEATS_ATH10K = ['max_magnitude', 'total_gain_db', 'base_pwr_db', 'rssi', 'relpwr_db', 'avgpwr_db', 'snr', 'cnr', 'pn', 'ssi', 'pd', 'sinr', 'sir', 'mr', 'pr']
-
-
-class Band(Enum):
-    BAND_24GHZ = "2.4GHz"
-    BAND_50GHZ = "5.0GHz"
 
 
 def get_ipv6_addr(osf_interface) -> str:
@@ -38,10 +22,8 @@ def get_ipv6_addr(osf_interface) -> str:
     """
     # Retrieve the IPv6 addresses associated with the osf_interface
     ipv6_addresses = netifaces.ifaddresses(osf_interface).get(netifaces.AF_INET6, [])
-    print("ipv6_addresses", ipv6_addresses)
     if ipv6_addresses:
         for addr_info in ipv6_addresses:
-            print("addr info: ", addr_info)
             if 'addr' in addr_info and addr_info['addr'].startswith('fd'):
                 return addr_info['addr']
             else:
@@ -97,88 +79,6 @@ def map_channel_to_freq(channel: int) -> int:
     :return: The frequency.
     """
     return CH_TO_FREQ[channel]
-
-
-def map_freq_to_channel(freq: int) -> int:
-    """
-    Maps the given frequency to its corresponding channel number int.
-
-    :param freq: The frequency value.
-    :return: The frequency.
-    """
-    return FREQ_TO_CH[freq]
-
-
-def load_sample_data(args: Options = Options()) -> Tuple[str, pd.DataFrame]:
-    """
-    Load sample data from a CSV file based on a randomly chosen sample type.
-
-    :param args: An Options object containing the command-line arguments.
-    :return: A tuple containing the message describing the sample data and a pandas DataFrame with the loaded data.
-    """
-    sample_type_to_dir = {
-        'floor': 'sample/floor/',
-        'jamming': 'sample/jamming/',
-        'background': 'sample/background/'
-    }
-
-    # Choose a random sample_type from the dictionary
-    sample_type = random.choice(list(sample_type_to_dir.keys()))
-    if sample_type not in sample_type_to_dir:
-        raise ValueError("Invalid sample_type provided. Choose from 'floor', 'background', or 'jamming'.")
-
-    csv_files = pathlib.Path(sample_type_to_dir[sample_type]).glob('*.csv')
-    path = random.choice(list(csv_files))
-    message = f'{sample_type.capitalize()} data {path}'
-
-    # load the data into a pandas DataFrame
-    data = pd.read_csv(path)
-    print(f"Sampled {sample_type} data") if args.debug else None
-    return message, data
-
-
-def get_frequency_quality(freq_quality: np.ndarray, probs: np.ndarray, frequencies: np.ndarray) -> Tuple[bool, dict]:
-    """
-    Get frequency quality information based on frequency quality and interference probabilities.
-
-    param freq_quality: NumPy array of frequency quality values.
-    param probs: NumPy array of interference probabilities.
-    param frequencies: NumPy array of frequencies to assess.
-
-    return: A Tuple containing a boolean indicating if jamming was detected and a dictionary mapping frequencies to quality values.
-    """
-    jamming_detected = False
-    freq_quality_dict = {}
-    # frequencies = np.sort(frequencies)
-
-    for i, freq in enumerate(frequencies):
-        index = np.argmax(probs[i])
-        freq_quality_dict[str(freq)] = float(freq_quality[i])
-        if index == 0:
-            pred = 'floor like interference'
-        elif index == 1:
-            pred = 'wireless lab. like interference'
-        elif index == 2:
-            pred = 'crypto/finance like interference'
-        else:
-            pred = 'jamming'
-            jamming_detected = True
-
-        print(freq, freq_quality[i], np.argmax(probs[i]), pred) if args.debug else None
-
-    return jamming_detected, freq_quality_dict
-
-
-# TODO: remove if rlly not used
-def trace_model(model) -> None:
-    """
-    Trace and save the PyTorch model.
-
-    model: PyTorch model to be traced.
-    """
-    example_input = torch.rand(1, 15, 128)
-    traced_model = torch.jit.trace(model, example_input)
-    torch.jit.save(traced_model, "my_traced_model.pt")
 
 
 # Frequency switch related functions

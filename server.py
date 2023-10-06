@@ -6,14 +6,11 @@ import socket
 import sys
 import threading
 import time
-import uuid
-from typing import List, Tuple, Dict
-from netstring import encode, decode
+from typing import List, Tuple
+from netstring import encode
 
 from options import Options
-from util import get_mesh_freq, map_freq_to_channel
-
-sys.path.append('..')
+from util import get_mesh_freq
 
 action_to_id = {
     "jamming_alert": 0,
@@ -130,8 +127,14 @@ class JammingServer:
         try:
             with open(file_path, 'r') as file:
                 data = json.load(file)
-                if 'freq' in data and data['frequency']:
-                    self.send_switch_frequency_message()
+                if 'freq' in data and data['freq'] is not None:
+                    if isinstance(data['freq'], int):
+                        # Set target frequency
+                        self.target_frequency = data['freq']
+                        # Revert back to null
+                        json.dump({"freq": None}, open(file_path, 'w'))
+                        # Send switch frequency message to clients
+                        self.send_switch_frequency_message()
         except FileNotFoundError:
             print(f'File not found: {file_path}')
         except json.JSONDecodeError:
@@ -170,7 +173,6 @@ class JammingClientTwin:
         self.clients = clients
         self.host = host
         self.args = Options()
-        super().__init__(socket, address, clients, host)
 
     def stop(self) -> None:
         """

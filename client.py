@@ -4,18 +4,15 @@ import subprocess
 import sys
 import threading
 import time
-from collections import deque
-from enum import auto, Enum
+import socket
 
 import msgpack
 import numpy as np
-import pandas as pd
-from netstring import encode, decode
+from netstring import decode
 
 from options import Options
-from util import get_frequency_quality, get_mesh_freq, run_command, read_file, write_file, is_process_running, get_ipv6_addr
+from util import get_mesh_freq, run_command, read_file, write_file, is_process_running, get_ipv6_addr
 
-sys.path.append('..')
 
 action_to_id = {
     "jamming_alert": 0,
@@ -29,7 +26,6 @@ id_to_action = {v: k for k, v in action_to_id.items()}
 
 class JammingDetectionClient:
     def __init__(self, node_id: str, host: str, port: int) -> None:
-        super().__init__()
         self.node_id = node_id
         self.host = host
         self.port = port
@@ -52,6 +48,9 @@ class JammingDetectionClient:
         # Create listen and client run FSM threads
         self.running = False
         self.listen_thread = threading.Thread(target=self.receive_messages)
+        self.switching_event = threading.Event()
+
+        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 
     def run(self) -> None:
         """
@@ -95,7 +94,7 @@ class JammingDetectionClient:
                 except Exception as e:
                     # Handle netstring decoding errors
                     print(f"Failed to decode netstring: {e}") if self.args.debug else None
-                    continue  # Go back to the beginning of the loop and attempt to receive data again
+                    break
 
                 # Deserialize the MessagePack message
                 try:
@@ -108,8 +107,10 @@ class JammingDetectionClient:
                     if action_str == "switch_frequency":
                         received_target_freq = unpacked_data.get("freq")
                         self.update_target_freq(received_target_freq)
-                        if self.current_frequency != self.target_frequency:
+                        if self.current_frequency != self.target_frequency and not self.switching_event.is_set():
+                            self.switching_event.set()
                             self.switch_frequency()
+                            self.switching_event.clear()
 
                 except msgpack.UnpackException as e:
                     print(f"Failed to decode MessagePack: {e}") if self.args.debug else None
@@ -167,10 +168,12 @@ class JammingDetectionClient:
 
             # Validate outcome of switch frequency process
             self.current_frequency = get_mesh_freq()
+            print("finished switch")
             if self.current_frequency != self.target_frequency:
                 print("Switch Unsuccessful") if self.args.debug else None
                 self.recovering_switch_error()
             else:
+                print("successful switch")
                 self.reset()
         except Exception as e:
             print(f"Switching frequency error occurred: {str(e)}") if self.args.debug else None
@@ -194,9 +197,7 @@ class JammingDetectionClient:
         """
         Reset Client FSM related attributes.
         """
-        self.time_last_scan = 0
         self.time_last_switch = 0
-        self.valid_scan_data = False
 
     def update_target_freq(self, received_target_freq):
         """
@@ -227,7 +228,7 @@ def main():
     node_id: str = get_ipv6_addr('tun0')
 
     client = JammingDetectionClient(node_id, host, port)
-    client.start()
+    client.run()
 
     try:
         while True:

@@ -143,15 +143,15 @@ def start_jamming_scripts(args, osf_ipv6_address):
     # Compare jamming_osf_orchestrator with osf_ipv6_address
     if args.jamming_osf_orchestrator == osf_ipv6_address:
         # Execute server.py
-        print("5. jamming_server_fsm.py") if args.debug else None
-        with open('jamming_server_fsm.log', 'w') as log_file:
-            subprocess.Popen(['python', 'jamming_server_fsm.py'], stdout=log_file, stderr=subprocess.STDOUT)
-        print("6. jamming_client_fsm.py") if args.debug else None
-        util.run_command('python jamming_client_fsm.py', 'Failed to run jamming_client_fsm file')
+        print("5. server.py") if args.debug else None
+        with open('server.log', 'w') as log_file:
+            subprocess.Popen(['python', 'server.py'], stdout=log_file, stderr=subprocess.STDOUT)
+        print("6. client.py") if args.debug else None
+        util.run_command('python client.py', 'Failed to run client file')
     else:
         # Execute client.py
-        print("5. jamming_client_fsm.py") if args.debug else None
-        util.run_command('python jamming_client_fsm.py', 'Failed to run jamming_client_fsm file')
+        print("5. client.py") if args.debug else None
+        util.run_command('python client.py', 'Failed to run client file')
 
 
 def main():
