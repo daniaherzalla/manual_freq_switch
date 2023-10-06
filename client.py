@@ -10,8 +10,8 @@ import msgpack
 import numpy as np
 from netstring import decode
 
-from options import Options
-from util import get_mesh_freq, run_command, read_file, write_file, is_process_running, get_ipv6_addr
+from options import Options, VALID_CHANNELS
+from util import get_mesh_freq, run_command, read_file, write_file, is_process_running, get_ipv6_addr, map_freq_to_channel
 
 
 action_to_id = {
@@ -77,7 +77,7 @@ class JammingDetectionClient:
             if number_retries == max_retries:
                 sys.exit("OSF Server unreachable")
 
-            time.sleep(2)
+            time.sleep(3)
 
     def receive_messages(self) -> None:
         """
@@ -168,12 +168,10 @@ class JammingDetectionClient:
 
             # Validate outcome of switch frequency process
             self.current_frequency = get_mesh_freq()
-            print("finished switch")
             if self.current_frequency != self.target_frequency:
                 print("Switch Unsuccessful") if self.args.debug else None
                 self.recovering_switch_error()
             else:
-                print("successful switch")
                 self.reset()
         except Exception as e:
             print(f"Switching frequency error occurred: {str(e)}") if self.args.debug else None
@@ -205,7 +203,9 @@ class JammingDetectionClient:
 
         :param received_target_freq: The new target frequency to be set.
         """
-        self.target_frequency = received_target_freq
+        channel = map_freq_to_channel(received_target_freq)
+        if channel in VALID_CHANNELS:
+            self.target_frequency = received_target_freq
 
     def stop(self) -> None:
         """

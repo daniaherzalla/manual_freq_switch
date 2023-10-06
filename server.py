@@ -122,23 +122,25 @@ class JammingServer:
         """
         Checks if frequency is populated in the JSON file and trigger switch frequency.
         """
-        # Change as necessary
-        file_path = 'freq.json'
         try:
-            with open(file_path, 'r') as file:
+            # Load json file to check if there is freq update
+            with open(self.args.json_file, 'r') as file:
                 data = json.load(file)
                 if 'freq' in data and data['freq'] is not None:
                     if isinstance(data['freq'], int):
                         # Set target frequency
                         self.target_frequency = data['freq']
-                        # Revert back to null
-                        json.dump({"freq": None}, open(file_path, 'w'))
                         # Send switch frequency message to clients
                         self.send_switch_frequency_message()
+
+                # Revert freq back to null
+                json.dump({"freq": None}, open(self.args.json_file, 'w'))
+
+        # Capture any exceptions with opening and loading json file
         except FileNotFoundError:
-            print(f'File not found: {file_path}')
+            print(f'File not found: {self.args.json_file}')
         except json.JSONDecodeError:
-            print(f'Invalid JSON format in file: {file_path}')
+            print(f'Invalid JSON format in file: {self.args.json_file}')
         except Exception as e:
             print(f'An error occurred: {str(e)}')
 

@@ -11,6 +11,17 @@ CH_TO_FREQ = {1: 2412, 2: 2417, 3: 2422, 4: 2427, 5: 2432, 6: 2437, 7: 2442, 8: 
               36: 5180, 40: 5200, 44: 5220, 48: 5240, 52: 5260, 56: 5280, 60: 5300, 64: 5320, 100: 5500, 104: 5520,
               108: 5540, 112: 5560, 116: 5580, 120: 5600, 124: 5620, 128: 5640, 132: 5660, 136: 5680, 140: 5700,
               149: 5745, 153: 5765, 157: 5785, 161: 5805}
+FREQ_TO_CH = {v: k for k, v in CH_TO_FREQ.items()}
+
+
+def map_freq_to_channel(freq: int) -> int:
+    """
+    Maps the given frequency to its corresponding channel number int.
+
+    :param freq: The frequency value.
+    :return: The frequency.
+    """
+    return FREQ_TO_CH[freq]
 
 
 def get_ipv6_addr(osf_interface) -> str:
