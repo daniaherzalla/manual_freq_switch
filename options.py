@@ -7,7 +7,7 @@ VALID_CHANNELS = [36, 40, 44, 48, 149, 153, 157, 161]
 class Options:
     def __init__(self):
         self.json_file = 'freq.json'
-        self.jamming_osf_orchestrator: str = 'fd01::1'
+        self.osf_orchestrator: str = 'fd01::1'
         self.port: int = 8080
         self.starting_channel: int = 36
         self.waiting_time: int = 15
@@ -19,8 +19,8 @@ class Options:
     def parse_options(self) -> 'Options':
         parser = argparse.ArgumentParser(description='Arguments for training.')
         parser.add_argument('--json_file', type=str, default=self.json_file, help='JSON file from which to load the new frequency.')
-        parser.add_argument('--jamming_osf_orchestrator', type=str, default=self.jamming_osf_orchestrator, help='IPv6 address of the jamming OSF orchestrator.')
-        parser.add_argument('--port', type=int, default=self.port, help='Port to connect to for orchestrator and clients jamming detection communication.')
+        parser.add_argument('--osf_orchestrator', type=str, default=self.osf_orchestrator, help='IPv6 address of the OSF orchestrator.')
+        parser.add_argument('--port', type=int, default=self.port, help='Port to connect to for orchestrator and clients communication.')
         parser.add_argument('--starting_channel', type=int, default=self.starting_channel, help='Starting channel to set the mesh to.')
         parser.add_argument('--waiting_time', type=int, default=self.waiting_time, help='Time interval in seconds.')
         parser.add_argument('--osf_interface', type=str, default=self.osf_interface, help='OSF interface name.')
@@ -31,7 +31,7 @@ class Options:
         args = parser.parse_args()
 
         self.json_file = args.json_file
-        self.jamming_osf_orchestrator = args.jamming_osf_orchestrator
+        self.osf_orchestrator = args.osf_orchestrator
         self.port = args.port
         self.starting_channel = args.starting_channel
         self.waiting_time = args.waiting_time

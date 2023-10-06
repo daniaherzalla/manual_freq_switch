@@ -99,12 +99,12 @@ def check_osf_connectivity(args) -> None:
     """
     Check IPv6 connectivity with a remote server.
 
-    :param args: The jamming avoidance variables.
+    :param args: options variables.
     """
     max_retries: int = 3
     number_retries: int = 0
     while True:
-        command = ['ping6', '-c', '1', args.jamming_osf_orchestrator]
+        command = ['ping6', '-c', '1', args.osf_orchestrator]
         try:
             subprocess.check_output(command, text=True)
             break
@@ -133,15 +133,15 @@ def setup_osf_interface(args: Options) -> None:
             sys.exit(1)
 
 
-def start_jamming_scripts(args, osf_ipv6_address):
+def start_scripts(args, osf_ipv6_address):
     """
-    Start jamming-related scripts based on configuration.
+    Start scripts based on configuration.
 
     param args: Configuration options.
     param osf_ipv6_address: IPv6 address associated with the OSF interface.
     """
-    # Compare jamming_osf_orchestrator with osf_ipv6_address
-    if args.jamming_osf_orchestrator == osf_ipv6_address:
+    # Compare osf_orchestrator with osf_ipv6_address
+    if args.osf_orchestrator == osf_ipv6_address:
         # Execute server.py
         print("5. server.py") if args.debug else None
         with open('server.log', 'w') as log_file:
@@ -175,11 +175,11 @@ def main():
 
     # If the current node is a client, check ipv6 connectivity with server
     print("4. check connectivity") if args.debug else None
-    if args.jamming_osf_orchestrator != osf_ipv6_address:
+    if args.osf_orchestrator != osf_ipv6_address:
         check_osf_connectivity(args)
 
-    # Start jamming-related scripts
-    start_jamming_scripts(args, osf_ipv6_address)
+    # Start scripts
+    start_scripts(args, osf_ipv6_address)
 
 
 if __name__ == "__main__":

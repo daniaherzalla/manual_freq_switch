@@ -20,7 +20,7 @@ action_to_id = {
 id_to_action = {v: k for k, v in action_to_id.items()}
 
 
-class JammingDetectionClient:
+class Client:
     def __init__(self, node_id: str, host: str, port: int) -> None:
         self.node_id = node_id
         self.host = host
@@ -219,11 +219,11 @@ class JammingDetectionClient:
 def main():
     args = Options()
 
-    host: str = args.jamming_osf_orchestrator
+    host: str = args.osf_orchestrator
     port: int = args.port
     node_id: str = get_ipv6_addr('tun0')
 
-    client = JammingDetectionClient(node_id, host, port)
+    client = Client(node_id, host, port)
     client.run()
 
     try:

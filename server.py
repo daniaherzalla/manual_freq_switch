@@ -18,10 +18,10 @@ action_to_id = {
 id_to_action = {v: k for k, v in action_to_id.items()}
 
 
-class JammingServer:
+class Server:
     def __init__(self, host: str, port: int):
         """
-        Initializes the JammingServer object.
+        Initializes the Server object.
 
         :param host: The host address to bind the orchestrator/server to.
         :param port: The port number to bind the orchestrator/server to.
@@ -31,7 +31,7 @@ class JammingServer:
         self.host = host
         self.port = port
         self.serversocket = None
-        self.clients: List[JammingClientTwin] = []
+        self.clients: List[ClientTwin] = []
         self.args = Options()
         logging.info("initialized server") if self.args.debug else None
 
@@ -63,7 +63,7 @@ class JammingServer:
 
             while self.running:
                 c_socket, c_address = self.serversocket.accept()
-                client = JammingClientTwin(c_socket, c_address, self.clients, self.host)
+                client = ClientTwin(c_socket, c_address, self.clients, self.host)
                 logging.info(f'New connection {client}') if self.args.debug else None
                 self.clients.append(client)
 
@@ -164,8 +164,8 @@ class JammingServer:
         self.send_data_clients(switch_frequency_data)
 
 
-class JammingClientTwin:
-    def __init__(self, socket: socket.socket, address: Tuple[str, int], clients: List["JammingClientTwin"], host: str) -> None:
+class ClientTwin:
+    def __init__(self, socket: socket.socket, address: Tuple[str, int], clients: List["ClientTwin"], host: str) -> None:
         self.socket = socket
         self.address = address
         self.clients = clients
@@ -184,9 +184,9 @@ class JammingClientTwin:
 def main():
     args = Options()
 
-    host: str = args.jamming_osf_orchestrator
+    host: str = args.osf_orchestrator
     port: int = args.port
-    server: JammingServer = JammingServer(host, port)
+    server: Server = Server(host, port)
     server.start()
 
 
