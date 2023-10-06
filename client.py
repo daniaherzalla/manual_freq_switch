@@ -15,11 +15,7 @@ from util import get_mesh_freq, run_command, read_file, write_file, is_process_r
 
 
 action_to_id = {
-    "jamming_alert": 0,
-    "estimation_request": 1,
-    "estimation_report": 2,
-    "target_frequency": 3,
-    "switch_frequency": 4
+    "switch_frequency": 0
 }
 id_to_action = {v: k for k, v in action_to_id.items()}
 
