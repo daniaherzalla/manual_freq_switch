@@ -5,6 +5,12 @@ Switch mesh frequency upon manual file change. CSA sent over OSF to connected cl
 2. Run ```setup.py``` on all nodes
 3. Edit ```freq.json``` to set new frequency
 
-<video src="https://github.com/daniaherzalla/manual_freq_switch/blob/main/manual_freq_switch.mp4?raw=true" width="800" controls></video>
+![manual_freq_switch](https://github.com/user-attachments/assets/f01452df-ef72-407f-b526-340f4852052c)
 
+**Demo setup:**
+- **Left terminal**: Client node communication module
+- **Right terminals**: Server node communication module
+  - *Top*: Client instance running
+  - *Bottom*: Server instance tracked via `server.log`
 
+The video demonstrates manual frequency switching propagating to all connected clients.
